@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title>
+    </title>
+    <script type="text/javascript">
+        function click1(){
+            localStorage.setItem("1",new Date());
+        }
+
+        function click2(){
+            alert(localStorage.getItem("1"));
+        }
+
+        function click3(){
+            localStorage.removeItem("1");
+        }
+
+        function click4(){
+            localStorage.clear();
+        }
+
+        localStorage.removeItem = function (key){
+            var se = document.createEvent("StorageEvent");
+            se.initStorageEvent('storage', false, false);
+            window.dispatchEvent(se);
+        }
+
+
+
+        window.addEventListener("storage",function(e){
+            console.log(e);
+        },false);
+
+    </script>
+</head>
+
+<body>
+<button onclick="click1()"> set </button>
+<button onclick="click2()"> get </button>
+<button onclick="click3()"> remove </button>
+<button onclick="click4()"> clear </button>
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "store_extra",
+  "main": "store_extra.js",
+  "version": "0.0.1",
+  "authors": [
+    "Tom <jiepengthegreat@126.com>"
+  ],
+  "description": "a extra plugins for store.js with strong set, get and events",
+  "keywords": [
+    "localstorage",
+    "events",
+    "set",
+    "all",
+    "kinds",
+    "of",
+    "js",
+    "objects"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

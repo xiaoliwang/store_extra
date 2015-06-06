@@ -1,0 +1,21 @@
+{
+  "name": "store_extra",
+  "version": "0.0.1",
+  "description": "a extra plugins for store.js with strong set, get and events",
+  "main": "store_extra.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "localstorage",
+    "events",
+    "set",
+    "all",
+    "kinds",
+    "of",
+    "js",
+    "objects"
+  ],
+  "author": "Tom <jiepengthegreat@126.com>",
+  "license": "MIT"
+}
