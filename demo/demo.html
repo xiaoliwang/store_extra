@@ -16,6 +16,7 @@
         }
 
         function click4(){
+            window.postMessage('hello','*');
             localStorage.clear();
         }
 
@@ -30,6 +31,10 @@
         window.addEventListener("storage",function(e){
             console.log(e);
         },false);
+
+        window.addEventListener('message',function(e){
+            console.log(e);
+        });
 
     </script>
 </head>

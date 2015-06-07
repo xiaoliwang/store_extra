@@ -21,6 +21,8 @@
     store.set = function(key, value){};
     store.get = function(key, defaultVal){};
     store.has = function(key){};
+    store.type = function(key){};
+    store.length = function(patten){};
     store.remove = function(key){};
     store.clear = function(){};
     store.forEach = function(callback){};
@@ -47,13 +49,36 @@
 
     store.serialize = function(val){
         var type = typeof val;
-        return type === 'string'? val:JSON.stringify(val)
+        if(type === 'object'){
+            if(val instanceof RegExp){
+                type = 'regexp';
+                val = val.source;
+            }
+        }
+        return type + '_' +((type === 'string' || type === 'regexp')? val:
+            JSON.stringify(val));
     };
 
     store.deserialize = function(val){
         if(typeof val !== 'string') return undefined;
+
+        var index = val.indexOf('_');
+        var type = val.substring(0,index);
+        val = val.substring(index + 1);
         try{
-            return JSON.parse(val)
+            switch(type){
+                case 'number':
+                    val = Number(val);break;
+                case 'boolean':
+                    val = Boolean(val);break;
+                case 'regexp':
+                    val = new RegExp(val);break;
+                case 'string':
+                    break;
+                default:
+                    val = JSON.parse(val);
+            }
+            return val;
         }catch(e) {
             return val || undefined;
         }
@@ -68,47 +93,53 @@
         storage = win.localStorage;
 
         store.set = function(key, val) {
-            if(val === undefined) return store.remove(key);
-
-            var type_key = 'type' + key,
-                val_key = 'val' + key;
-            var type = typeof val;
-
-            storage.setItem(type_key, type);
-            storage.setItem(val_key, store.serialize(val));
+            if(val === undefined || val === null) return store.remove(key);
+            storage.setItem(key, store.serialize(val));
             return true;
         }
 
         store.get = function(key,defaultVal){
-            var type_key = 'type' + key,
-                val_key = 'val' + key,
-                val;
-
-            var type = storage.getItem(type_key);
-            switch(type){
-                case 'number':
-                    val = Number(storage.getItem(val_key));break;
-                case 'boolean':
-                    val = Boolean(storage.getItem(val_key));break;
-                case 'string':
-                    val = storage.getItem(val_key);break;
-                default:
-                    val = store.deserialize(storage.getItem(key));
-            }
-            return val? val: defaultVal;
+            var val = store.deserialize(storage.getItem(key));
+            return val !== undefined || val !== null? val:
+                defaultVal;
         }
 
         store.has = function(key){
-            var type_key = 'type' + key;
-            return store.get(type_key) !== undefined;
+            return storage.getItem(key) !== null;
+        }
+
+        store.type = function(key){
+            var val = storage.getItem(key);
+            if(val){
+                var index = val.indexOf('_');
+                return val.substring(0,index);
+            }else{
+                return undefined;
+            }
+        }
+
+        store.length = function(regexp){
+            var num = 0, patten;
+            if(regexp && typeof regexp === 'string'){
+                if(regexp instanceof RegExp){
+                    patten = regexp;
+                }else {
+                    patten = new RegExp(regexp);
+                }
+                for(var i =0; i<storage.length; i++){
+                    if(patten.test(storage.key(i)))
+                        ++num;
+                }
+                return num;
+            }else{
+                num = storage.length;
+            }
+            return num;
         }
 
         store.remove = function (key) {
-            var type_key = 'type' + key;
-            var val_key = 'val' + key;
             if(store.has(key)){
-                storage.removeItem(type_key);
-                storage.removeItem(val_key);
+                storage.removeItem(key);
                 return true;
             }else{
                 return false;
@@ -116,7 +147,7 @@
         }
 
         store.clear = function(){
-            var num = storage.length / 2;
+            var num = storage.length;
             storage.clear();
             return num;
         }
@@ -124,18 +155,52 @@
         store.forEach = function(callback){
             for (var i=0; i<storage.length; i++) {
                 var key = storage.key(i);
-                if(/^val/.test(key)){
-                    callback(key.replace(/^val/,''), store.get(key));
+                callback(key,store.get(key));
+            }
+        }
+
+        store.onChange = function(key, callback){
+            window.addEventListener('storage',function(e){
+                if(key !== null){
+                    if(e.key === key){
+                        if(e.newValue === null){
+                            callback('remove', e.key, store.deserialize(e.oldValue));
+                        }else if(e.oldValue === null){
+                            callback('new', e.key, store.deserialize(e.newValue));
+                        }else{
+                            callback('update', e.key,store.deserialize(e.newValue),
+                                store.deserialize(e.oldValue));
+                        }
+                    }
+                }else{
+                    callback('clear');
                 }
+
+            },false);
+        }
+
+        store.on = function(event, callback){
+            window.addEventListener('storage',function(e){
+                var key = 'event' + event;
+                if(e.key === key){
+                    if(e.oldValue === null){
+                        callback.apply(null,store.deserialize(e.newValue));
+                    }
+                }
+            },false)
+        }
+
+        store.emit = function (){
+            var arg = Array.prototype.slice.call(arguments);
+            if(arg.length >= 1){
+                var event = 'event' + arg.shift();
+                store.set(event, arg);
+                store.remove(event);
+            }else{
+                throw new TypeError("Failed to execute 'emit' on 'store': 1 argument required, but only 0 present.");
             }
         }
 
-        store.on = function(events, callback, context){
-            var test = function(){
-
-            }
-            window.addEventListener(events, callback, false);
-        }
     }
 
     try{
