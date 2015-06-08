@@ -1,6 +1,6 @@
 {
   "name": "store_extra",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "a extra plugins for store.js with strong set, get and events",
   "main": "store_extra.min.js",
   "scripts": {
