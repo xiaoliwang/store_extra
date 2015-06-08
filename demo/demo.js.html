@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <title>demon of stroe_extra</title>
     <script src="../store_extra.js"></script>
+    <input type="button" onclick="test()" value = 'ceshi'/>
 </head>
-<body>
+<script>
+    store.on('a',function(a){alert(a)});
 
-</body>
+    function test(){
+        store.emit('a','c');
+    }
+</script>
 </html>

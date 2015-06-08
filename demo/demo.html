@@ -2,48 +2,79 @@
 <head>
     <title>
     </title>
+    <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
     <script type="text/javascript">
-        function click1(){
-            localStorage.setItem("1",new Date());
-        }
+        $(function(){
+            // localStorage sends a "storage" Event to all connected windows
+            // this event does not bubble
+            // Internet Explorer expects the event on document,
+            // specification adhering browser expect it on window
+            // IE8 doesn't know storageEvent.key (.oldValue, .newValue), so it has to be faked
+            // Specification:
+            // http://dev.w3.org/html5/webstorage/#the-storage-event
+            // http://msdn.microsoft.com/de-de/library/cc197062%28v=vs.85%29.aspx#onstorage
+            // http://msdn.microsoft.com/de-de/library/cc197059.aspx
 
-        function click2(){
-            alert(localStorage.getItem("1"));
-        }
+            var _last_sent_key = null,
+                    send = function(message) {
+                        var key = 'cdm-' + (+new Date());
 
-        function click3(){
-            localStorage.removeItem("1");
-        }
+                        // event is not sent if the storage is not mutated!
+                        if (localStorage.getItem('rand') !== null) {
+                            localStorage.removeItem('rand');
+                        }
 
-        function click4(){
-            window.postMessage('hello','*');
-            localStorage.clear();
-        }
+                        // IE8 fix missing storageEvent.key
+                        if ("onstorage" in document) {
+                            localStorage.setItem('_last_storage_event_key', key);
+                        }
 
-        localStorage.removeItem = function (key){
-            var se = document.createEvent("StorageEvent");
-            se.initStorageEvent('storage', false, false);
-            window.dispatchEvent(se);
-        }
+                        _last_sent_key = key;
+                        localStorage.setItem(key, message);
 
+                        $('<p>sent Message[' + key + ']: ' + message + '</p>')
+                                .appendTo(document.body);
+                    },
+                    receive = function(e) {
+                        var value = localStorage.getItem(e.originalEvent.key);
+                        if (value === null) {
+                            // ignore .removeStorage() events
+                            return;
+                        };
 
+                        $('<p>received Message[' + e.originalEvent.key + ']: ' + value + '</p>')
+                                .appendTo(document.body);
 
-        window.addEventListener("storage",function(e){
-            console.log(e);
-        },false);
+                        // inform sender (and other listeners) that the key has been removed
+                        localStorage.removeItem(e.originalEvent.key);
+                    };
 
-        window.addEventListener('message',function(e){
-            console.log(e);
+            $('#send').on('click', function(){ send( "Hello, it's " + (new Date()) ); });
+            $(window).on('storage', receive);
+
+            // IE8 fix missing storageEvent.key
+            if ('onstorage' in document) {
+               /* $(document).on('storage', function(e) {
+                    console.log(e);
+                    var key = localStorage.getItem('_last_storage_event_key');
+                    if (key !== null && _last_sent_key !== key) {
+                        e.originalEvent.key = key;
+                        receive.call(this, e);
+                    }
+                });*/
+                document.attachEvent('onstorage',function(e){
+                    console.log(e);
+                });
+            }
+
         });
 
     </script>
 </head>
 
 <body>
-<button onclick="click1()"> set </button>
-<button onclick="click2()"> get </button>
-<button onclick="click3()"> remove </button>
-<button onclick="click4()"> clear </button>
+<button id="send" >test</button>
+
 </body>
 
 </html>

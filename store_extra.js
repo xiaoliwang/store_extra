@@ -16,6 +16,23 @@
     storage;
 
     store.enabled = true;
+    store.version = '0.0.1';
+    store.storageNull = null;
+    store.Sys = {};
+
+    //获取浏览器版本
+    var ua = navigator.userAgent.toLowerCase();
+    var s;
+    (s = ua.match(/rv:([\d.]+)\) like gecko/)) ? store.Sys.ie = s[1] :
+        (s = ua.match(/msie ([\d.]+)/)) ? store.Sys.ie = s[1] :
+            (s = ua.match(/firefox\/([\d.]+)/)) ? store.Sys.firefox = s[1] :
+                (s = ua.match(/chrome\/([\d.]+)/)) ? store.Sys.chrome = s[1] :
+                    (s = ua.match(/opera.([\d.]+)/)) ? store.Sys.opera = s[1] :
+                        (s = ua.match(/version\/([\d.]+).*safari/)) ? store.Sys.safari = s[1] : 0;
+
+    if(store.Sys.ie){
+        store.storageNull = '';
+    }
 
     //方法初始化
     store.set = function(key, value){};
@@ -26,6 +43,9 @@
     store.remove = function(key){};
     store.clear = function(){};
     store.forEach = function(callback){};
+    store.onChange = function(key, callback){};
+    store.on = function(event, callback){};
+    store.emit = function(){};
 
     store.transact = function(){}; //以后添加
 
@@ -93,14 +113,14 @@
         storage = win.localStorage;
 
         store.set = function(key, val) {
-            if(val === undefined || val === null) return store.remove(key);
+            if(val == null || val === '') return store.remove(key);
             storage.setItem(key, store.serialize(val));
             return true;
         }
 
         store.get = function(key,defaultVal){
             var val = store.deserialize(storage.getItem(key));
-            return val !== undefined || val !== null? val:
+            return (val != null || val !== '')? val:
                 defaultVal;
         }
 
@@ -120,7 +140,7 @@
 
         store.length = function(regexp){
             var num = 0, patten;
-            if(regexp && typeof regexp === 'string'){
+            if(regexp){
                 if(regexp instanceof RegExp){
                     patten = regexp;
                 }else {
@@ -160,12 +180,12 @@
         }
 
         store.onChange = function(key, callback){
-            window.addEventListener('storage',function(e){
-                if(key !== null){
+            win.addEventListener('storage',function(e){
+                if(key !== store.storageNull){
                     if(e.key === key){
-                        if(e.newValue === null){
+                        if(e.newValue === store.storageNull){
                             callback('remove', e.key, store.deserialize(e.oldValue));
-                        }else if(e.oldValue === null){
+                        }else if(e.oldValue === store.storageNull){
                             callback('new', e.key, store.deserialize(e.newValue));
                         }else{
                             callback('update', e.key,store.deserialize(e.newValue),
@@ -180,22 +200,60 @@
         }
 
         store.on = function(event, callback){
-            window.addEventListener('storage',function(e){
-                var key = 'event' + event;
-                if(e.key === key){
-                    if(e.oldValue === null){
-                        callback.apply(null,store.deserialize(e.newValue));
+            if(!('onstorage' in document)){
+                win.addEventListener('storage',function(e){
+                    if(!document.hasFocus()){
+                        var key = 'event' + event;
+                        if(e.key === key){
+                            if(e.oldValue === store.storageNull){
+                                callback.apply(this,store.deserialize(e.newValue));
+                            }
+                        }
                     }
-                }
-            },false)
+                },false)
+            }else{
+                /*document.attachEvent('onstorage',function(e){
+                    console.log(e);
+                    if(!document.hasFocus()){
+                        var key = 'event' + event;
+                        if(e.key === key){
+                            if(e.oldValue === store.storageNull){
+                                callback.apply(this,store.deserialize(e.newValue));
+                            }
+                        }
+                    }
+                });*/
+                document.attachEvent('onstorage',function(e){
+                    if(!document.hasFocus()){
+                        var key = 'event' + event;
+                        var Ekey = store.get('_last_storage_event_key');
+                        console.log(_last_sent_key);
+                        if(Ekey === key){
+                            var args = store.get(Ekey);
+                            if(args){
+                                callback.apply(this, args);
+                            }
+                        }
+                        //storage.removeItem(Ekey);
+                        //storage.removeItem('_last_storage_event_key');
+                    }
+                });
+            }
         }
 
         store.emit = function (){
             var arg = Array.prototype.slice.call(arguments);
             if(arg.length >= 1){
-                var event = 'event' + arg.shift();
-                store.set(event, arg);
-                store.remove(event);
+                if(!('onstorage' in document)) {
+                    var event = 'event' + arg.shift();
+                    store.set(event, arg);
+                    storage.removeItem(event);
+                }else{
+                    //IE8 fix missing storageEvent.key
+                    var event = 'event' + arg.shift();
+                    store.set(event, arg);
+                    store.set('_last_storage_event_key',event);
+                }
             }else{
                 throw new TypeError("Failed to execute 'emit' on 'store': 1 argument required, but only 0 present.");
             }
