@@ -21,4 +21,4 @@ gulp.task('clean',function(){
 
 gulp.task('default', ['clean'], function() {
     gulp.start('minifyjs');
-})
+});
