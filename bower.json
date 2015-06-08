@@ -1,6 +1,6 @@
 {
   "name": "store_extra",
-  "main": "store_extra.js",
+  "main": "store_extra.min.js",
   "version": "0.0.1",
   "authors": [
     "Tom <jiepengthegreat@126.com>"
@@ -20,8 +20,6 @@
   "ignore": [
     "**/.*",
     "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "bower_components"
   ]
 }
