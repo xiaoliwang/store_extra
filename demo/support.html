@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head lang="cn">
+    <meta charset="UTF-8">
+    <title>support store_extra</title>
+    <script src="../lib/store_extra.js"></script>
+    <style type="text/css">
+        body{
+            margin: 50px;
+            font-family: helvetica;
+            color: #333;
+        }
+        div .green{
+            color: green;
+        }
+        div .red{
+            color: red;
+        }
+    </style>
+</head>
+<body>
+tests for support
+<a href="https://github.com/xiaoliwang/store_extra">
+    store_extra
+</a>
+<div id="infOutput"></div>
+
+<script type="application/javascript">
+    (function() {
+        var doc = window.document,
+            isPassed = doc.getElementById('infOutput');
+        if(store.enabled){
+            isPassed.innerHTML = '<div class="green">Tests passed</div>';
+        }else{
+            isPassed.innerHTML = '<div class="red">Tests not passed</div>';
+        }
+    }());
+</script>
+</body>
+</html>
