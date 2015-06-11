@@ -28,6 +28,7 @@ value:<input class="input" id="val" /><br/>
 <input class="button" type="button" onclick="test1()" value = 'enter'/>
 <input class="button" type="button" onclick="test2()" value = 'clear'/>
 </body>
+<p>所有本地元素都在下面：</p>
 <div id="datas"></div>
 <script type="application/javascript">
 (function(){
@@ -50,8 +51,13 @@ value:<input class="input" id="val" /><br/>
         alert('清除成功,一共' + num + '个key');
     }
 
+    var datas = document.getElementById('datas');
     var allDatas = store.getAll();
     for(var key in allDatas){
+        var newNode = document.createElement("div");
+        newNode.innerHTML = key + ":" + allDatas[key];
+        console.log(newNode);
+        datas.appendChild(newNode);
     }
 
     win.test1 = test1;
