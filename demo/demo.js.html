@@ -4,16 +4,58 @@
     <meta charset="UTF-8">
     <title>demon of stroe_extra</title>
     <script src="../lib/store_extra.js"></script>
-    <input type="button" onclick="test()" value = 'ceshi'/>
+
+    <style type="text/css">
+        body{
+            margin: 50px;
+            font-family: helvetica;
+            color: #333;
+        }
+        .input{
+            margin: 10px;
+        }
+        .button{
+            margin-right : 5px;
+        }
+    </style>
 </head>
-<script>
-    var test2 = function(a){alert(a);}
-
-    var tempfun = store.on('a',test2);
-    //store.off('b',test2);
-
-    function test(){
-        store.emit('a','c');
+<body>
+<p>
+    这个页面，你可以看到store_extra最简单的用法。
+</p>
+key:<input class="input" id="key" /><br/>
+value:<input class="input" id="val" /><br/>
+<input class="button" type="button" onclick="test1()" value = 'enter'/>
+<input class="button" type="button" onclick="test2()" value = 'clear'/>
+</body>
+<div id="datas"></div>
+<script type="application/javascript">
+(function(){
+    var win = window;
+    var test1 = function(){
+        var key = document.getElementById('key').value.trim();
+        var value = document.getElementById('val').value.trim();
+        if(key && value){
+            store.set(key,value);
+            document.getElementById('key').value = '';
+            document.getElementById('val').value = '';
+            alert('输入成功，刷新或重开页面可见');
+        }else{
+            alert('数据不正确');
+        }
     }
+
+    var test2 = function(){
+        var num = store.clear();
+        alert('清除成功,一共' + num + '个key');
+    }
+
+    var allDatas = store.getAll();
+    for(var key in allDatas){
+    }
+
+    win.test1 = test1;
+    win.test2 = test2;
+}());
 </script>
 </html>
