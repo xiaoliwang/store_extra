@@ -1,7 +1,7 @@
 {
   "name": "store_extra",
   "main": "store_extra.min.js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "authors": [
     "Tom <jiepengthegreat@126.com>"
   ],
